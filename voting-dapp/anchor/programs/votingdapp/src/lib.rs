@@ -28,8 +28,35 @@ pub mod votingdapp {
     }
 
     pub fn vote(ctx: Context<Vote>, _candidate_name: String, _poll_id: u64) -> Result<()> {
+
+      let current_time = Clock::get()?.timestamp as u64;
+      if current_time < ctx.accounts.poll.poll_start || current_time > ctx.accounts.poll.poll_end {
+        return err!(VotingError::PollNotActive);
+      }
+
+      let poll = &ctx.accounts.poll.poll_id.to_le_bytes();
+      let signer = &ctx.accounts.poll.signer.key();
+      let voter_record_seeds = &[
+        b"voter-record",
+        poll.as_ref(),
+        signer.as_ref(),
+      ];
+      let (voter_record_key, bump) = Pubkey::find_program_address(voter_record_seeds, ctx.programId);
+
+      if ctx.accounts.voter_record.key() != voter_record_key {
+        return err!(VotingError::InvalidVoterRecord);
+      }
+
+      if ctx.accounts.voter_record.has_voted {
+        return err!(VotingError::AlreadyVoted);
+      }
+
+
       let candidate = &mut ctx.accounts.candidate;
       candidate.candidate_votes += 1;
+
+      ctx.accounts.voter_record.has_voted = true;
+      
       msg!("Voted for candidate: {}", candidate.candidate_name);
       msg!("Votes: {}", candidate.candidate_votes);
       Ok(())
@@ -53,6 +80,21 @@ pub struct Vote<'info> {
     bump
   )]
   pub candidate: Account<'info, Candidate>,
+
+  #[account(
+    init_if_needed,
+    payer = signer,
+    space = 8 + VoterRecord::INIT_SPACE,
+    seeds = [
+      b"voter-record",
+      poll_id.to_le_bytes.as_ref(),
+      signer.key().as_ref()
+    ],
+    bump
+  )]
+  pub voter_record: Account<'info, VoterRecord>,
+
+  pub system_program: Program<'info, System>
 
 }
 
@@ -100,6 +142,12 @@ pub struct InitializePoll<'info> {
 }
 
 #[account]
+#[derive(INIT_SPACE)]
+pub struct VoterRecord {
+  has_voted: bool
+}
+
+#[account]
 #[derive(InitSpace)]
 pub struct Candidate {
   #[max_len(32)]
@@ -116,4 +164,14 @@ pub struct Poll {
   pub poll_start: u64,
   pub poll_end: u64,
   pub candidate_amount: u64,
+}
+
+#[error_code]
+pub enum VotingError {
+  #[msg("You have already voted in this poll")]
+    AlreadyVoted,
+    #[msg("The poll is not currently active")]
+    PollNotActive,
+    #[msg("Invalid voter record account")]
+    InvalidVoterRecord,
 }
