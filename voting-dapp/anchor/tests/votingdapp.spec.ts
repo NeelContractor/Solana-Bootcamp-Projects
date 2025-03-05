@@ -11,7 +11,7 @@ const votingAddress = new PublicKey("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF
 describe('Voting', () => {
 
   let context;
-  let provider;
+  let provider: BankrunProvider;
   let votingProgram: anchor.Program<Votingdapp>;
 
   beforeAll(async() => {
@@ -90,5 +90,16 @@ describe('Voting', () => {
     const smoothCandidate = await votingProgram.account.candidate.fetch(smoothAddress);
     expect(smoothCandidate.candidateVotes.toNumber()).toEqual(1);
     console.log(smoothCandidate);
+
+    const signer = provider.wallet.publicKey;
+    const [voterRecord] = PublicKey.findProgramAddressSync(
+      [Buffer.from("voter-record"), new anchor.BN(1).toArrayLike(Buffer, 'le', 8), signer.toBytes()],
+      votingAddress
+    );
+
+    const record = await votingProgram.account.voterRecord.fetch(voterRecord);
+    console.log(record);
+
+    
   });
 })

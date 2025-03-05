@@ -144,6 +144,7 @@ export type Votingdapp = {
       "accounts": [
         {
           "name": "signer",
+          "writable": true,
           "signer": true
         },
         {
@@ -172,6 +173,43 @@ export type Votingdapp = {
               }
             ]
           }
+        },
+        {
+          "name": "voterRecord",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114,
+                  45,
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "pollId"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -212,6 +250,36 @@ export type Votingdapp = {
         153,
         111
       ]
+    },
+    {
+      "name": "voterRecord",
+      "discriminator": [
+        178,
+        96,
+        138,
+        116,
+        143,
+        202,
+        115,
+        33
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "alreadyVoted",
+      "msg": "You have already voted in this poll"
+    },
+    {
+      "code": 6001,
+      "name": "pollNotActive",
+      "msg": "The poll is not currently active"
+    },
+    {
+      "code": 6002,
+      "name": "invalidVoterRecord",
+      "msg": "Invalid voter record account"
     }
   ],
   "types": [
@@ -255,6 +323,18 @@ export type Votingdapp = {
           {
             "name": "candidateAmount",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "voterRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hasVoted",
+            "type": "bool"
           }
         ]
       }

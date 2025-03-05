@@ -29,19 +29,19 @@ pub mod votingdapp {
 
     pub fn vote(ctx: Context<Vote>, _candidate_name: String, _poll_id: u64) -> Result<()> {
 
-      let current_time = Clock::get()?.timestamp as u64;
+      let current_time = Clock::get()?.unix_timestamp as u64;
       if current_time < ctx.accounts.poll.poll_start || current_time > ctx.accounts.poll.poll_end {
         return err!(VotingError::PollNotActive);
       }
 
       let poll = &ctx.accounts.poll.poll_id.to_le_bytes();
-      let signer = &ctx.accounts.poll.signer.key();
+      let signer = &ctx.accounts.signer.key();
       let voter_record_seeds = &[
         b"voter-record",
         poll.as_ref(),
         signer.as_ref(),
       ];
-      let (voter_record_key, bump) = Pubkey::find_program_address(voter_record_seeds, ctx.programId);
+      let (voter_record_key, _bump) = Pubkey::find_program_address(voter_record_seeds, ctx.program_id);
 
       if ctx.accounts.voter_record.key() != voter_record_key {
         return err!(VotingError::InvalidVoterRecord);
@@ -66,6 +66,7 @@ pub mod votingdapp {
 #[derive(Accounts)]
 #[instruction(candidate_name: String, poll_id: u64)]
 pub struct Vote<'info> {
+  #[account(mut)]
   pub signer: Signer<'info>,
 
   #[account(
@@ -87,7 +88,7 @@ pub struct Vote<'info> {
     space = 8 + VoterRecord::INIT_SPACE,
     seeds = [
       b"voter-record",
-      poll_id.to_le_bytes.as_ref(),
+      poll_id.to_le_bytes().as_ref(),
       signer.key().as_ref()
     ],
     bump
@@ -142,7 +143,7 @@ pub struct InitializePoll<'info> {
 }
 
 #[account]
-#[derive(INIT_SPACE)]
+#[derive(InitSpace)]
 pub struct VoterRecord {
   has_voted: bool
 }
