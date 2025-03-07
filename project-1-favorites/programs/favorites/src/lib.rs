@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use anchor_lang::prelude::*;
 
 declare_id!("Bw9k2iMMNwWiFxv5WPN6FPmA42KWyr7Ds5Qr2NjaTJge");
@@ -53,7 +55,7 @@ pub struct SetFavorites<'info> {
     pub user: Signer<'info>,
 
     #[account(
-        init_if_needed,
+        init,
         payer = user,
         space = ANCHOR_DISCRIMINATOR_SIZE + Favorites::INIT_SPACE,
         seeds = [b"favorites", user.key().as_ref()],
