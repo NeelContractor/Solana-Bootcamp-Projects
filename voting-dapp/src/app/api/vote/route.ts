@@ -16,14 +16,14 @@ export async function GET(request: Request) {
     links: {
       actions: [
         {
-          type: "transaction",
+          type: "post",
           label: "Vote for Crunchy",
-          href: "/api/vote?candidate=Crunchy",
+          href: "/api/vote?candidate=crunchy",
         },
         {
-          type: "transaction",
+          type: "post",
           label: "Vote for Smooth",
-          href: "/api/vote?candidate=Smooth",
+          href: "/api/vote?candidate=smooth",
         }
       ]
     }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const candidate = url.searchParams.get("candidate");
 
-  if (candidate != "Crunchy" && candidate != "Smooth") {
+  if (candidate != "crunchy" && candidate != "smooth") {
     return new Response("Invalid candidate", { status: 400, headers: ACTIONS_CORS_HEADERS });
   }
 
