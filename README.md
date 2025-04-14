@@ -10,3 +10,4 @@ Here i will be uploading the projects i build for solana's officail you tube cha
 - Project 6 NFTs
 - Project 7 Swap Program (escrow)
 - Project 8 Token Vesting Program
+- Project 9 Token Lottery Program 
