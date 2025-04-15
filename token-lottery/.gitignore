@@ -8,6 +8,7 @@
 
 test-ledge
 /test-ledge
+/setup/test-ledge
 
 # testing
 /coverage
